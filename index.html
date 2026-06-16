@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>광땡 (GAUNGDDANG)</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans">
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const ROLES_DATA = {
+      송학: { count: 4, attack: "상대의 안정도 직접 타격 (1d35+10)", support: "대상이 받는 회복을 대미지로 반전", heal: "-", defense: "-", penalty: "싸리 공격 시 대상에게 입힌 대미지의 1.5배만큼 본인 안정도 감소", winCondition: "모란 및 단풍의 전멸" },
+      모란: { count: 4, attack: "상대의 안정도 직접 타격 (1d35+10)", support: "대상의 회복 차단 및 회복 능력을 사용한 단풍의 스킬 사용 1회 차단", heal: "-", defense: "-", penalty: "송학 공격 시 2회 동안 본인 공격력 50% 감소", winCondition: "싸리 및 단풍의 전멸" },
+      싸리: { count: 4, attack: "상대의 안정도 직접 타격 (1d35+10)", support: "대상이 받는 회복량을 자신에게 이전", heal: "-", defense: "-", penalty: "모란 공격 시 스킬 사용 1회 불가", winCondition: "송학 및 단풍의 전멸" },
+      단풍: { count: 12, attack: "-", support: "-", heal: "대상의 안정도 회복 (1d25+10)", defense: "안정도가 40% 이하로 떨어질 때 발생하는 첫 공격을 무조건 회피 1회 (패시브)", penalty: "안정도가 30% 이하인 대상에게 회복 시도 시 대상의 안정도가 즉시 0이 됨", winCondition: "모든 역할군을 최소 1명 이상 포함한 상태로 총 8명 이상 생존" }
+    };
+
+    const INITIAL_PLAYERS = [
+      { id: 1, name: "플레이어 A", role: "송학", stability: 100 },
+      { id: 2, name: "플레이어 B", role: "모란", stability: 85 },
+      { id: 3, name: "플레이어 C", role: "싸리", stability: 45 },
+      { id: 4, name: "플레이어 D", role: "단풍", stability: 25 },
+      { id: 5, name: "플레이어 E", role: "단풍", stability: 0 }
+    ];
+
+    function GameDashboard() {
+      const [activeTab, setActiveTab] = useState('내 정보');
+      const [players] = useState(INITIAL_PLAYERS);
+      
+      const myInfo = {
+        name: "플레이어 C (본인)", role: "싸리", stability: 45, winCondition: "송학 및 단풍의 전멸", skill: "대상이 받는 회복량을 자신에게 이전"
+      };
+
+      const rollDice = () => {
+        alert("🎲 주사위(1d35+10) 결과: " + (Math.floor(Math.random() * 35) + 11) + " 계산됨!");
+      };
+
+      return (
+        <div class="max-w-4xl mx-auto p-4 md:p-8">
+          <header class="text-center mb-6 border-b border-gray-800 pb-4">
+            <h1 class="text-3xl font-extrabold text-red-500">광땡 (GAUNGDDANG)</h1>
+            <p class="text-xs text-gray-400 mt-1">※ 기기 파손 시 예외 없이 즉각 실격 처리됨을 알림.</p>
+          </header>
+
+          <nav class="grid grid-cols-4 gap-2 mb-8 bg-gray-800 p-1.5 rounded-xl">
+            {['내 정보', '판세', '족보', '비기'].map((tab) => (
+              <button key={tab} onClick={() => setActiveTab(tab)} class={`py-3 text-center text-sm font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-red-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}>{tab}</button>
+            ))}
+          </nav>
+
+          <main class="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 shadow-2xl">
+            {activeTab === '내 정보' && (
+              <div class="space-y-6">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-3">
+                  <h2 class="text-xl font-bold text-red-400">👤 내 정보</h2>
+                  <span class="px-3 py-1 text-xs bg-red-900/50 text-red-300 rounded-full border border-red-700">기밀 유지</span>
+                </div>
+                <p class="text-sm text-gray-400 bg-gray-900/40 p-3 rounded-lg border-l-4 border-yellow-500">💡 승패를 가르는 치명적인 기밀이므로 타인에게 노출되지 않도록 각별히 유의해야 합니다.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700"><span class="text-xs text-gray-400 block mb-1">소속 역할군</span><span class="text-2xl font-bold text-white">{myInfo.role}</span></div>
+                  <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700">
+                    <span class="text-xs text-gray-400 block mb-1">현재 안정도 ({myInfo.stability}%)</span>
+                    <div class="w-full bg-gray-700 h-4 rounded-full mt-2 overflow-hidden"><div class="bg-green-500 h-full" style={{ width: `${myInfo.stability}%` }}></div></div>
+                  </div>
+                </div>
+                <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700"><span class="text-xs text-red-400 font-bold block mb-1">🎯 나의 승리 조건</span><p class="text-sm text-gray-200 mt-1">{myInfo.winCondition}</p></div>
+              </div>
+            )}
+
+            {activeTab === '판세' && (
+              <div class="space-y-6">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-3"><h2 class="text-xl font-bold text-blue-400">📊 실시간 판세 모니터링</h2><span class="text-xs bg-gray-700 px-2.5 py-1 rounded">22:30 갱신</span></div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left"><thead class="bg-gray-900/40 text-xs text-gray-400"><tr class="border-b border-gray-700"><th class="p-3">참가자</th><th class="p-3">안정도</th><th class="p-3">상태</th></tr></thead><tbody class="divide-y divide-gray-700 text-sm">
+                    {players.map(p => (
+                      <tr key={p.id} class="hover:bg-gray-700/30">
+                        <td class="p-3">{p.name} ({p.role})</td>
+                        <td class="p-3"><div class="w-24 bg-gray-800 h-2 rounded-full overflow-hidden"><div class={`h-full ${p.stability > 40 ? 'bg-green-500' : p.stability > 0 ? 'bg-yellow-500' : 'bg-red-600'}`} style={{ width: `${p.stability}%` }}></div></div></td>
+                        <td class="p-3">{p.stability === 0 ? "⚠️ 실격" : p.stability <= 30 ? "⚡ 위험" : "정상"}</td>
+                      </tr>
+                    ))}
+                  </tbody></table>
+                </div>
+              </div>
+            )}
+
+            {activeTab === '족보' && (
+              <div class="space-y-6">
+                <h2 class="text-xl font-bold text-yellow-400 border-b border-gray-700 pb-3">📜 게임 족보</h2>
+                <div class="overflow-x-auto text-xs">
+                  <table class="w-full border border-gray-700 border-collapse"><thead><tr class="bg-gray-900 text-gray-300 border-b border-gray-700"><th class="p-2 border-r border-gray-700">역할군</th><th class="p-2 border-r border-gray-700">공격/서포트/회복</th><th class="p-2 border-r border-gray-700">페널티</th><th class="p-2">승리조건</th></tr></thead><tbody class="divide-y divide-gray-700">
+                    {Object.entries(ROLES_DATA).map(([name, info]) => (
+                      <tr key={name} class="hover:bg-gray-700/40">
+                        <td class="p-2 font-bold border-r border-gray-700">{name}({info.count})</td>
+                        <td class="p-2 border-r border-gray-700">공격: {info.attack}<br/>서포트: {info.support}<br/>회복: {info.heal}</td>
+                        <td class="p-2 border-r border-gray-700 text-amber-400">{info.penalty}</td>
+                        <td class="p-2 text-emerald-400">{info.winCondition}</td>
+                      </tr>
+                    ))}
+                  </tbody></table>
+                </div>
+              </div>
+            )}
+
+            {activeTab === '비기' && (
+              <div class="space-y-6">
+                <h2 class="text-xl font-bold text-purple-400 border-b border-gray-700 pb-3">⚡ 특수 비기</h2>
+                <div class="bg-gray-900/80 p-6 rounded-xl border border-purple-900/50 space-y-4">
+                  <h3 class="text-lg font-bold text-white">{myInfo.role} 고유 스킬: {myInfo.skill}</h3>
+                  <button onClick={rollDice} class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm px-5 py-2.5 rounded-lg shadow-md transition-colors">🎲 능력 주사위 굴리기</button>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    const root = banknotes = Scrooge = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<GameDashboard />);
+  </script>
+</body>
+</html>
