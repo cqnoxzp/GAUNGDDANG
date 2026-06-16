@@ -4,128 +4,279 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>광땡 (GAUNGDDANG)</title>
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 기본 다크모드 스타일 직접 지정 */
+    body {
+      background-color: #111827;
+      color: #f3f4f6;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      border-b: 1px solid #1f2937;
+      padding-bottom: 16px;
+    }
+    h1 {
+      color: #ef4444;
+      margin: 0;
+      font-size: 2rem;
+    }
+    .warning {
+      color: #9ca3af;
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+    /* 탭 메뉴 스타일 */
+    .nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background-color: #1f2937;
+      padding: 6px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      padding: 12px 0;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.875rem;
+    }
+    .tab-btn.active {
+      background-color: #dc2626;
+      color: white;
+    }
+    /* 메인 박스 스타일 */
+    main {
+      background-color: rgba(31, 41, 55, 0.5);
+      border: 1px solid #374151;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    /* 내부 레이아웃 */
+    .title-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #374151;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .info-box {
+      background-color: rgba(17, 24, 39, 0.6);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #374151;
+      margin-bottom: 16px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (min-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+    /* 게이지바 */
+    .progress-bar {
+      width: 100%;
+      background-color: #4b5563;
+      height: 16px;
+      border-radius: 9999px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background-color: #10b981;
+    }
+    /* 테이블 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #374151;
+      text-align: left;
+    }
+    th {
+      background-color: rgba(17, 24, 39, 0.4);
+      color: #9ca3af;
+    }
+    .border-table th, .border-table td {
+      border: 1px solid #374151;
+    }
+    /* 버튼 */
+    .btn {
+      background-color: #7c3aed;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn:hover { background-color: #6d28d9; }
+  </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans">
+<body>
 
-  <div id="root"></div>
+  <div class="container">
+    <header>
+      <h1>광땡 (GAUNGDDANG)</h1>
+      <p class="warning">※ 기기 파손 시 예외 없이 즉각 실격 처리됨을 알림.</p>
+    </header>
 
-  <script type="text/babel">
-    const { useState } = React;
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('info', this)">내 정보</button>
+      <button class="tab-btn" onclick="switchTab('status', this)">판세</button>
+      <button class="tab-btn" onclick="switchTab('jokbo', this)">족보</button>
+      <button class="tab-btn" onclick="switchTab('skill', this)">비기</button>
+    </nav>
 
-    const ROLES_DATA = {
-      송학: { count: 4, attack: "상대의 안정도 직접 타격 (1d35+10)", support: "대상이 받는 회복을 대미지로 반전", heal: "-", defense: "-", penalty: "싸리 공격 시 대상에게 입힌 대미지의 1.5배만큼 본인 안정도 감소", winCondition: "모란 및 단풍의 전멸" },
-      모란: { count: 4, attack: "상대의 안정도 직접 타격 (1d35+10)", support: "대상의 회복 차단 및 회복 능력을 사용한 단풍의 스킬 사용 1회 차단", heal: "-", defense: "-", penalty: "송학 공격 시 2회 동안 본인 공격력 50% 감소", winCondition: "싸리 및 단풍의 전멸" },
-      싸리: { count: 4, attack: "상대의 안정도 직접 타격 (1d35+10)", support: "대상이 받는 회복량을 자신에게 이전", heal: "-", defense: "-", penalty: "모란 공격 시 스킬 사용 1회 불가", winCondition: "송학 및 단풍의 전멸" },
-      단풍: { count: 12, attack: "-", support: "-", heal: "대상의 안정도 회복 (1d25+10)", defense: "안정도가 40% 이하로 떨어질 때 발생하는 첫 공격을 무조건 회피 1회 (패시브)", penalty: "안정도가 30% 이하인 대상에게 회복 시도 시 대상의 안정도가 즉시 0이 됨", winCondition: "모든 역할군을 최소 1명 이상 포함한 상태로 총 8명 이상 생존" }
-    };
-
-    const INITIAL_PLAYERS = [
-      { id: 1, name: "플레이어 A", role: "송학", stability: 100 },
-      { id: 2, name: "플레이어 B", role: "모란", stability: 85 },
-      { id: 3, name: "플레이어 C", role: "싸리", stability: 45 },
-      { id: 4, name: "플레이어 D", role: "단풍", stability: 25 },
-      { id: 5, name: "플레이어 E", role: "단풍", stability: 0 }
-    ];
-
-    function GameDashboard() {
-      const [activeTab, setActiveTab] = useState('내 정보');
-      const [players] = useState(INITIAL_PLAYERS);
-      
-      const myInfo = {
-        name: "플레이어 C (본인)", role: "싸리", stability: 45, winCondition: "송학 및 단풍의 전멸", skill: "대상이 받는 회복량을 자신에게 이전"
-      };
-
-      const rollDice = () => {
-        alert("🎲 주사위(1d35+10) 결과: " + (Math.floor(Math.random() * 35) + 11) + " 계산됨!");
-      };
-
-      return (
-        <div class="max-w-4xl mx-auto p-4 md:p-8">
-          <header class="text-center mb-6 border-b border-gray-800 pb-4">
-            <h1 class="text-3xl font-extrabold text-red-500">광땡 (GAUNGDDANG)</h1>
-            <p class="text-xs text-gray-400 mt-1">※ 기기 파손 시 예외 없이 즉각 실격 처리됨을 알림.</p>
-          </header>
-
-          <nav class="grid grid-cols-4 gap-2 mb-8 bg-gray-800 p-1.5 rounded-xl">
-            {['내 정보', '판세', '족보', '비기'].map((tab) => (
-              <button key={tab} onClick={() => setActiveTab(tab)} class={`py-3 text-center text-sm font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-red-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}>{tab}</button>
-            ))}
-          </nav>
-
-          <main class="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 shadow-2xl">
-            {activeTab === '내 정보' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center border-b border-gray-700 pb-3">
-                  <h2 class="text-xl font-bold text-red-400">👤 내 정보</h2>
-                  <span class="px-3 py-1 text-xs bg-red-900/50 text-red-300 rounded-full border border-red-700">기밀 유지</span>
-                </div>
-                <p class="text-sm text-gray-400 bg-gray-900/40 p-3 rounded-lg border-l-4 border-yellow-500">💡 승패를 가르는 치명적인 기밀이므로 타인에게 노출되지 않도록 각별히 유의해야 합니다.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700"><span class="text-xs text-gray-400 block mb-1">소속 역할군</span><span class="text-2xl font-bold text-white">{myInfo.role}</span></div>
-                  <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700">
-                    <span class="text-xs text-gray-400 block mb-1">현재 안정도 ({myInfo.stability}%)</span>
-                    <div class="w-full bg-gray-700 h-4 rounded-full mt-2 overflow-hidden"><div class="bg-green-500 h-full" style={{ width: `${myInfo.stability}%` }}></div></div>
-                  </div>
-                </div>
-                <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700"><span class="text-xs text-red-400 font-bold block mb-1">🎯 나의 승리 조건</span><p class="text-sm text-gray-200 mt-1">{myInfo.winCondition}</p></div>
-              </div>
-            )}
-
-            {activeTab === '판세' && (
-              <div class="space-y-6">
-                <div class="flex justify-between items-center border-b border-gray-700 pb-3"><h2 class="text-xl font-bold text-blue-400">📊 실시간 판세 모니터링</h2><span class="text-xs bg-gray-700 px-2.5 py-1 rounded">22:30 갱신</span></div>
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left"><thead class="bg-gray-900/40 text-xs text-gray-400"><tr class="border-b border-gray-700"><th class="p-3">참가자</th><th class="p-3">안정도</th><th class="p-3">상태</th></tr></thead><tbody class="divide-y divide-gray-700 text-sm">
-                    {players.map(p => (
-                      <tr key={p.id} class="hover:bg-gray-700/30">
-                        <td class="p-3">{p.name} ({p.role})</td>
-                        <td class="p-3"><div class="w-24 bg-gray-800 h-2 rounded-full overflow-hidden"><div class={`h-full ${p.stability > 40 ? 'bg-green-500' : p.stability > 0 ? 'bg-yellow-500' : 'bg-red-600'}`} style={{ width: `${p.stability}%` }}></div></div></td>
-                        <td class="p-3">{p.stability === 0 ? "⚠️ 실격" : p.stability <= 30 ? "⚡ 위험" : "정상"}</td>
-                      </tr>
-                    ))}
-                  </tbody></table>
-                </div>
-              </div>
-            )}
-
-            {activeTab === '족보' && (
-              <div class="space-y-6">
-                <h2 class="text-xl font-bold text-yellow-400 border-b border-gray-700 pb-3">📜 게임 족보</h2>
-                <div class="overflow-x-auto text-xs">
-                  <table class="w-full border border-gray-700 border-collapse"><thead><tr class="bg-gray-900 text-gray-300 border-b border-gray-700"><th class="p-2 border-r border-gray-700">역할군</th><th class="p-2 border-r border-gray-700">공격/서포트/회복</th><th class="p-2 border-r border-gray-700">페널티</th><th class="p-2">승리조건</th></tr></thead><tbody class="divide-y divide-gray-700">
-                    {Object.entries(ROLES_DATA).map(([name, info]) => (
-                      <tr key={name} class="hover:bg-gray-700/40">
-                        <td class="p-2 font-bold border-r border-gray-700">{name}({info.count})</td>
-                        <td class="p-2 border-r border-gray-700">공격: {info.attack}<br/>서포트: {info.support}<br/>회복: {info.heal}</td>
-                        <td class="p-2 border-r border-gray-700 text-amber-400">{info.penalty}</td>
-                        <td class="p-2 text-emerald-400">{info.winCondition}</td>
-                      </tr>
-                    ))}
-                  </tbody></table>
-                </div>
-              </div>
-            )}
-
-            {activeTab === '비기' && (
-              <div class="space-y-6">
-                <h2 class="text-xl font-bold text-purple-400 border-b border-gray-700 pb-3">⚡ 특수 비기</h2>
-                <div class="bg-gray-900/80 p-6 rounded-xl border border-purple-900/50 space-y-4">
-                  <h3 class="text-lg font-bold text-white">{myInfo.role} 고유 스킬: {myInfo.skill}</h3>
-                  <button onClick={rollDice} class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm px-5 py-2.5 rounded-lg shadow-md transition-colors">🎲 능력 주사위 굴리기</button>
-                </div>
-              </div>
-            )}
-          </main>
+    <main>
+      <div id="info" class="tab-content active">
+        <div class="title-area">
+          <h2 style="color: #f87171; margin:0;">👤 내 정보</h2>
+          <span style="background:#991b1b; color:#fca5a5; padding:4px 8px; border-radius:12px; font-size:12px;">기밀 유지</span>
         </div>
-      );
+        <p style="color:#9ca3af; background:rgba(17,24,39,0.4); padding:12px; border-left:4px solid #eab308; border-radius:4px;">
+          💡 승패를 가르는 치명적인 기밀이므로 타인에게 노출되지 않도록 각별히 유의해야 합니다.
+        </p>
+        <div class="grid-2">
+          <div class="info-box">
+            <span style="font-size:12px; color:#9ca3af;">소속 역할군</span>
+            <div style="font-size:24px; font-weight:bold; margin-top:4px;">싸리</div>
+          </div>
+          <div class="info-box">
+            <span style="font-size:12px; color:#9ca3af;">현재 안정도 (45%)</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 45%; background-color:#eab308;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="info-box">
+          <span style="font-size:12px; color:#f87171; font-weight:bold;">🎯 나의 승리 조건</span>
+          <p style="margin:4px 0 0 0; color:#e5e7eb;">송학 및 단풍의 전멸</p>
+        </div>
+      </div>
+
+      <div id="status" class="tab-content">
+        <div class="title-area">
+          <h2 style="color: #60a5fa; margin:0;">📊 실시간 판세 모니터링</h2>
+          <span style="font-size:12px; color:#9ca3af;">22:30 갱신</span>
+        </div>
+        <table>
+          <thead>
+            <tr><th>참가자</th><th>안정도</th><th>상태</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>플레이어 A (송학)</td><td>100%</td><td style="color:#10b981;">정상</td></tr>
+            <tr><td>플레이어 B (모란)</td><td>85%</td><td style="color:#10b981;">정상</td></tr>
+            <tr><td>플레이어 C (싸리 - 본인)</td><td>45%</td><td style="color:#eab308;">경고</td></tr>
+            <tr><td>플레이어 D (단풍)</td><td>25%</td><td style="color:#ef4444;">⚡ 위험</td></tr>
+            <tr><td>플레이어 E (단풍)</td><td>0%</td><td style="color:#7f1d1d;">⚠️ 실격</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="jokbo" class="tab-content">
+        <div class="title-area">
+          <h2 style="color: #fbbf24; margin:0;">📜 게임 족보</h2>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="border-table" style="font-size:12px;">
+            <thead>
+              <tr style="background:#111827;">
+                <th>역할군</th><th>공격/서포트/회복</th><th>페널티</th><th>승리조건</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>송학 (4)</b></td>
+                <td>• 공격: 상대 안정도 직접 타격 (1d35+10)<br>• 서포트: 대상이 받는 회복을 대미지로 반전</td>
+                <td style="color:#f59e0b;">싸리 공격 시 대상에게 입힌 대미지의 1.5배만큼 본인 안정도 감소</td>
+                <td style="color:#10b981;">모란 및 단풍의 전멸</td>
+              </tr>
+              <tr>
+                <td><b>모란 (4)</b></td>
+                <td>• 공격: 상대 안정도 직접 타격 (1d35+10)<br>• 서포트: 대상 회복 차단 및 단풍 스킬 사용 1회 차단</td>
+                <td style="color:#f59e0b;">송학 공격 시 2회 동안 본인 공격력 50% 감소</td>
+                <td style="color:#10b981;">싸리 및 단풍의 전멸</td>
+              </tr>
+              <tr>
+                <td><b>싸리 (4)</b></td>
+                <td>• 공격: 상대 안정도 직접 타격 (1d35+10)<br>• 서포트: 대상이 받는 회복량을 자신에게 이전</td>
+                <td style="color:#f59e0b;">모란 공격 시 스킬 사용 1회 불가</td>
+                <td style="color:#10b981;">송학 및 단풍의 전멸</td>
+              </tr>
+              <tr>
+                <td><b>단풍 (12)</b></td>
+                <td>• 회복: 대상의 안정도 회복 (1d25+10)<br>• 방어: 안정도 40% 이하일 때 첫 공격 무조건 회피 1회</td>
+                <td style="color:#f59e0b;">안정도 30% 이하인 대상에게 회복 시도 시 대상 안정도 즉시 0 됨</td>
+                <td style="color:#10b981;">모든 역할군 최소 1명 포함 총 8명 이상 생존</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="skill" class="tab-content">
+        <div class="title-area">
+          <h2 style="color: #c084fc; margin:0;">⚡ 특수 비기</h2>
+        </div>
+        <div class="info-box" style="border-color:#a855f7;">
+          <h3 style="margin:0 0 8px 0;">싸리 고유 스킬: 대상이 받는 회복량을 자신에게 이전</h3>
+          <p style="color:#9ca3af; font-size:14px; margin-bottom:16px;">주사위를 굴려 스킬 수치를 주사위 값으로 연산합니다.</p>
+          <button class="btn" onclick="rollDice()">🎲 능력 주사위 굴리기</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 탭 전환 자바스크립트 함수
+    function switchTab(tabId, btn) {
+      // 모든 컨텐츠 숨기기
+      const contents = document.querySelectorAll('.tab-content');
+      contents.forEach(c => c.classList.remove('active'));
+      
+      // 모든 버튼 비활성화
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      
+      // 선택한 탭만 켜기
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<GameDashboard />);
+    // 주사위 굴리기 함수
+    function rollDice() {
+      const dice = Math.floor(Math.random() * 35) + 11; // 1d35 + 10 연산
+      alert("🎲 주사위 연산 결과: " + dice + " 가 나왔습니다!");
+    }
   </script>
 </body>
 </html>
